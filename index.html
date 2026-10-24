@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Niet klikken</title>
+<style>
+:root{--zwart:#050404;--bloed:#b3001b;--bot:#d9cfc0;--grijs:#1a1514;--groen:#2cff7a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--zwart);color:var(--bot);font-family:Georgia,"Times New Roman",serif;line-height:1.6;overflow-x:hidden;cursor:crosshair}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:5;
+background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:4;
+background:radial-gradient(ellipse at center,transparent 40%,#000 100%)}
+nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;gap:1.5rem;justify-content:center;padding:1rem;background:linear-gradient(#000,transparent)}
+nav a{color:var(--bot);text-decoration:none;font-size:1.1rem;padding:.3rem .6rem;border-bottom:2px solid transparent}
+nav a:hover,nav a.actief{color:var(--bloed);border-color:var(--bloed);animation:flikker .3s infinite}
+main{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 1.5rem 4rem;gap:1.5rem}
+h1{font-size:clamp(3rem,12vw,8rem);line-height:1;letter-spacing:.04em;color:var(--bot)}
+h2{font-size:clamp(1.6rem,5vw,3rem);color:var(--bloed)}
+p{max-width:60ch}
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-tekst);position:absolute;left:0;top:0;width:100%;overflow:hidden}
+.glitch::before{color:#ff003c;left:3px;animation:glitch1 2.2s infinite linear alternate-reverse}
+.glitch::after{color:#00e5ff;left:-3px;animation:glitch2 1.7s infinite linear alternate-reverse}
+@keyframes glitch1{0%{clip-path:inset(10% 0 80% 0)}20%{clip-path:inset(60% 0 10% 0)}40%{clip-path:inset(30% 0 50% 0)}60%{clip-path:inset(80% 0 5% 0)}80%{clip-path:inset(5% 0 70% 0)}100%{clip-path:inset(45% 0 35% 0)}}
+@keyframes glitch2{0%{clip-path:inset(70% 0 10% 0)}25%{clip-path:inset(15% 0 60% 0)}50%{clip-path:inset(50% 0 30% 0)}75%{clip-path:inset(5% 0 85% 0)}100%{clip-path:inset(35% 0 45% 0)}}
+@keyframes flikker{0%,100%{opacity:1}50%{opacity:.4}70%{opacity:.9}}
+.knop{background:var(--bloed);color:#fff;border:0;padding:1rem 2rem;font:inherit;font-size:1.3rem;cursor:pointer;box-shadow:0 0 25px rgba(179,0,27,.6)}
+.knop:hover{animation:flikker .25s infinite}
+.kaarten{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;width:100%;max-width:900px}
+.kaart{background:var(--grijs);border:1px solid #3a2523;padding:1.2rem;cursor:pointer;text-align:left}
+.kaart:hover{border-color:var(--bloed);transform:rotate(-1deg)}
+.klein{font-size:.9rem;opacity:.6}
+.tijd{font-size:2rem;color:var(--groen);font-family:"Courier New",monospace}
+.schudden{animation:schud .12s infinite}
+@keyframes schud{0%{transform:translate(4px,2px)}25%{transform:translate(-5px,-3px)}50%{transform:translate(3px,-4px)}75%{transform:translate(-4px,4px)}100%{transform:translate(2px,-2px)}}
+.schok{position:fixed;inset:0;z-index:100;background:#000;display:none;align-items:center;justify-content:center;overflow:hidden}
+.schok.aan{display:flex}
+.schok svg{width:min(100vw,100vh*0.9);height:100vh;animation:groei .25s ease-out forwards,schud .08s .25s infinite}
+@keyframes groei{from{transform:scale(.3)}to{transform:scale(1.15)}}
+.schok.flits{animation:flits .15s 3}
+@keyframes flits{0%,100%{background:#000}50%{background:#a00}}
+.schok .tekst{position:absolute;bottom:6%;left:0;right:0;text-align:center;color:#fff;font-size:1.2rem;text-shadow:0 0 10px red}
+@media (prefers-reduced-motion:reduce){.glitch::before,.glitch::after{animation:none}}
+
+.pagina{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 1.5rem 4rem;gap:1.5rem}
+.pagina.aan{display:flex}
+nav a{cursor:pointer}
+
+</style>
+</head>
+<body>
+<nav>
+<a data-pagina="thuis" href="#thuis">Thuis</a>
+<a data-pagina="spookhuis" href="#spookhuis">Spookhuis</a>
+<a data-pagina="kamer" href="#kamer">De kamer</a>
+</nav>
+
+<section class="pagina" id="p-thuis">
+<h1 class="glitch" data-tekst="NIET KLIKKEN">NIET KLIKKEN</h1>
+<p>Je bent hier niet veilig. Iets kijkt mee. Het wacht tot je iets doet.</p>
+<button class="knop" data-schrik>Klik hier niet</button>
+<p class="klein">Zet je geluid zacht. Klikken op de pagina kan ook gevaarlijk zijn.</p>
+</section>
+
+<section class="pagina" id="p-spookhuis">
+<h1 class="glitch" data-tekst="HET SPOOKHUIS">HET SPOOKHUIS</h1>
+<p>Kies een deur. Maar pas op: niet elke deur is leeg.</p>
+<div class="kaarten">
+<div class="kaart" data-schrik><h2>Deur 1</h2><p>De kelder. Je hoort krabben.</p></div>
+<div class="kaart" data-schrik><h2>Deur 2</h2><p>De zolder. Er beweegt een schaduw.</p></div>
+<div class="kaart" data-schrik><h2>Deur 3</h2><p>De spiegelkamer. Wie kijkt terug?</p></div>
+</div>
+</section>
+
+<section class="pagina" id="p-kamer">
+<h1 class="glitch" data-tekst="DE KAMER">DE KAMER</h1>
+<p>Je moet hier blijven tot de tijd om is. Niet bewegen.</p>
+<div class="tijd" id="tijd">00:30</div>
+<p class="klein">Als je beweegt met de muis, komt hij dichterbij.</p>
+</section>
+
+<div class="schok" id="schok" aria-hidden="true">
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#5a0a0a"/><stop offset="1" stop-color="#050000"/></radialGradient>
+<radialGradient id="o" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff700"/><stop offset=".5" stop-color="#ff3b00"/><stop offset="1" stop-color="#600"/></radialGradient></defs>
+<rect width="400" height="500" fill="#000"/>
+<path d="M70 190 Q40 60 95 20 Q110 110 150 150Z" fill="#2b0606" stroke="#900" stroke-width="3"/>
+<path d="M330 190 Q360 60 305 20 Q290 110 250 150Z" fill="#2b0606" stroke="#900" stroke-width="3"/>
+<path d="M200 60 Q320 70 335 230 Q340 380 270 450 Q200 490 130 450 Q60 380 65 230 Q80 70 200 60Z" fill="url(#g)" stroke="#a00" stroke-width="4"/>
+<path d="M120 150 L180 205 L110 215Z" fill="#000"/><path d="M280 150 L220 205 L290 215Z" fill="#000"/>
+<ellipse cx="148" cy="200" rx="30" ry="16" fill="url(#o)"/><ellipse cx="252" cy="200" rx="30" ry="16" fill="url(#o)"/>
+<ellipse cx="148" cy="200" rx="4" ry="15" fill="#000"/><ellipse cx="252" cy="200" rx="4" ry="15" fill="#000"/>
+<path d="M200 215 L185 275 L215 275Z" fill="#000"/>
+<path d="M105 320 Q200 290 295 320 Q320 420 200 470 Q80 420 105 320Z" fill="#000" stroke="#c00" stroke-width="3"/>
+<g fill="#eee8d5"><path d="M118 322 l12 45 l12 -42Z"/><path d="M150 312 l10 55 l12 -52Z"/><path d="M185 308 l10 60 l12 -60Z"/><path d="M222 310 l10 55 l10 -55Z"/><path d="M255 316 l12 46 l10 -42Z"/><path d="M135 440 l12 -42 l12 45Z"/><path d="M175 455 l12 -55 l12 58Z"/><path d="M220 450 l10 -50 l14 48Z"/></g>
+<path d="M170 400 Q200 520 230 400Z" fill="#a0102a"/>
+<path d="M160 120 l-8 40 M240 120 l8 40 M200 90 v40" stroke="#600" stroke-width="3"/>
+</svg>
+<div class="tekst">Klik om te sluiten</div>
+</div>
+
+<script>
+(function(){
+  function toon(naam){
+    document.querySelectorAll('.pagina').forEach(function(p){p.classList.toggle('aan',p.id==='p-'+naam);});
+    document.querySelectorAll('nav a').forEach(function(a){a.classList.toggle('actief',a.dataset.pagina===naam);});
+    if(location.hash!=='#'+naam)history.replaceState(null,'','#'+naam);
+  }
+  document.querySelectorAll('nav a').forEach(function(a){
+    a.addEventListener('click',function(e){e.preventDefault();toon(a.dataset.pagina);});
+  });
+  toon((location.hash||'#thuis').slice(1)||'thuis');
+
+  var schok=document.getElementById('schok');
+  var open=false,klaarOm=0,ctx=null;
+
+  function geluid(){
+    try{
+      ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+      var n=ctx.sampleRate*1.2,buf=ctx.createBuffer(1,n,ctx.sampleRate),d=buf.getChannelData(0);
+      for(var i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+      var ruis=ctx.createBufferSource();ruis.buffer=buf;
+      var osc=ctx.createOscillator();osc.type='sawtooth';
+      osc.frequency.setValueAtTime(900,ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(90,ctx.currentTime+1.1);
+      var vol=ctx.createGain();vol.gain.value=0.35;
+      ruis.connect(vol);osc.connect(vol);vol.connect(ctx.destination);
+      ruis.start();osc.start();osc.stop(ctx.currentTime+1.2);
+    }catch(e){}
+  }
+
+  function schrik(){
+    if(open)return;
+    open=true;klaarOm=Date.now()+900;
+    schok.classList.remove('flits');void schok.offsetWidth;
+    schok.classList.add('aan','flits');
+    geluid();
+    if(navigator.vibrate)navigator.vibrate([200,80,300]);
+  }
+  function sluit(){
+    if(Date.now()<klaarOm)return;
+    schok.classList.remove('aan','flits');open=false;
+  }
+  schok.addEventListener('click',sluit);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')sluit();});
+
+  // Klik op knoppen of kaarten = schrik
+  document.querySelectorAll('[data-schrik]').forEach(function(el){
+    el.addEventListener('click',schrik);
+  });
+
+  // Soms schrikt hij ook bij een gewone klik (1 op 6)
+  document.addEventListener('click',function(e){
+    if(e.target.closest('nav')||e.target.closest('.schok'))return;
+    if(Math.random()<1/6)schrik();
+  });
+
+  // Glitch: de pagina schudt af en toe
+  setInterval(function(){
+    if(open||Math.random()>0.5)return;
+    document.body.classList.add('schudden');
+    setTimeout(function(){document.body.classList.remove('schudden');},150+Math.random()*250);
+  },2500);
+
+  // Kamer-pagina: aftellen, en bewegen = hij komt dichterbij
+  var tijd=document.getElementById('tijd');
+  if(tijd){
+    var sec=30,beweeg=0;
+    document.addEventListener('mousemove',function(){
+      beweeg++;
+      if(!document.getElementById('p-kamer').classList.contains('aan'))return;
+      if(beweeg>40){beweeg=0;schrik();}
+    });
+    setInterval(function(){
+      if(!document.getElementById('p-kamer').classList.contains('aan')){sec=30;tijd.textContent='00:30';return;}
+      sec--;
+      if(sec<=0){schrik();sec=30;}
+      tijd.textContent='00:'+(sec<10?'0':'')+sec;
+    },1000);
+  }
+})();
+
+</script>
+</body>
+</html>
