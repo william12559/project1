@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Het spookhuis</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+<a href="index.html" >Thuis</a>
+<a href="spookhuis.html" class="actief">Spookhuis</a>
+<a href="kamer.html" >De kamer</a>
+</nav>
+<main>
+
+<h1 class="glitch" data-tekst="HET SPOOKHUIS">HET SPOOKHUIS</h1>
+<p>Kies een deur. Maar pas op: niet elke deur is leeg.</p>
+<div class="kaarten">
+<div class="kaart" data-schrik><h2>Deur 1</h2><p>De kelder. Je hoort krabben.</p></div>
+<div class="kaart" data-schrik><h2>Deur 2</h2><p>De zolder. Er beweegt een schaduw.</p></div>
+<div class="kaart" data-schrik><h2>Deur 3</h2><p>De spiegelkamer. Wie kijkt terug?</p></div>
+</div>
+</main>
+<div class="schok" id="schok" aria-hidden="true">
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#5a0a0a"/><stop offset="1" stop-color="#050000"/></radialGradient>
+<radialGradient id="o" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff700"/><stop offset=".5" stop-color="#ff3b00"/><stop offset="1" stop-color="#600"/></radialGradient></defs>
+<rect width="400" height="500" fill="#000"/>
+<path d="M70 190 Q40 60 95 20 Q110 110 150 150Z" fill="#2b0606" stroke="#900" stroke-width="3"/>
+<path d="M330 190 Q360 60 305 20 Q290 110 250 150Z" fill="#2b0606" stroke="#900" stroke-width="3"/>
+<path d="M200 60 Q320 70 335 230 Q340 380 270 450 Q200 490 130 450 Q60 380 65 230 Q80 70 200 60Z" fill="url(#g)" stroke="#a00" stroke-width="4"/>
+<path d="M120 150 L180 205 L110 215Z" fill="#000"/><path d="M280 150 L220 205 L290 215Z" fill="#000"/>
+<ellipse cx="148" cy="200" rx="30" ry="16" fill="url(#o)"/><ellipse cx="252" cy="200" rx="30" ry="16" fill="url(#o)"/>
+<ellipse cx="148" cy="200" rx="4" ry="15" fill="#000"/><ellipse cx="252" cy="200" rx="4" ry="15" fill="#000"/>
+<path d="M200 215 L185 275 L215 275Z" fill="#000"/>
+<path d="M105 320 Q200 290 295 320 Q320 420 200 470 Q80 420 105 320Z" fill="#000" stroke="#c00" stroke-width="3"/>
+<g fill="#eee8d5"><path d="M118 322 l12 45 l12 -42Z"/><path d="M150 312 l10 55 l12 -52Z"/><path d="M185 308 l10 60 l12 -60Z"/><path d="M222 310 l10 55 l10 -55Z"/><path d="M255 316 l12 46 l10 -42Z"/><path d="M135 440 l12 -42 l12 45Z"/><path d="M175 455 l12 -55 l12 58Z"/><path d="M220 450 l10 -50 l14 48Z"/></g>
+<path d="M170 400 Q200 520 230 400Z" fill="#a0102a"/>
+<path d="M160 120 l-8 40 M240 120 l8 40 M200 90 v40" stroke="#600" stroke-width="3"/>
+</svg>
+<div class="tekst">Klik om te sluiten</div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

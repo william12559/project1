@@ -1,0 +1,39 @@
+:root{--zwart:#050404;--bloed:#b3001b;--bot:#d9cfc0;--grijs:#1a1514;--groen:#2cff7a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--zwart);color:var(--bot);font-family:Georgia,"Times New Roman",serif;line-height:1.6;overflow-x:hidden;cursor:crosshair}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:5;
+background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:4;
+background:radial-gradient(ellipse at center,transparent 40%,#000 100%)}
+nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;gap:1.5rem;justify-content:center;padding:1rem;background:linear-gradient(#000,transparent)}
+nav a{color:var(--bot);text-decoration:none;font-size:1.1rem;padding:.3rem .6rem;border-bottom:2px solid transparent}
+nav a:hover,nav a.actief{color:var(--bloed);border-color:var(--bloed);animation:flikker .3s infinite}
+main{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 1.5rem 4rem;gap:1.5rem}
+h1{font-size:clamp(3rem,12vw,8rem);line-height:1;letter-spacing:.04em;color:var(--bot)}
+h2{font-size:clamp(1.6rem,5vw,3rem);color:var(--bloed)}
+p{max-width:60ch}
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-tekst);position:absolute;left:0;top:0;width:100%;overflow:hidden}
+.glitch::before{color:#ff003c;left:3px;animation:glitch1 2.2s infinite linear alternate-reverse}
+.glitch::after{color:#00e5ff;left:-3px;animation:glitch2 1.7s infinite linear alternate-reverse}
+@keyframes glitch1{0%{clip-path:inset(10% 0 80% 0)}20%{clip-path:inset(60% 0 10% 0)}40%{clip-path:inset(30% 0 50% 0)}60%{clip-path:inset(80% 0 5% 0)}80%{clip-path:inset(5% 0 70% 0)}100%{clip-path:inset(45% 0 35% 0)}}
+@keyframes glitch2{0%{clip-path:inset(70% 0 10% 0)}25%{clip-path:inset(15% 0 60% 0)}50%{clip-path:inset(50% 0 30% 0)}75%{clip-path:inset(5% 0 85% 0)}100%{clip-path:inset(35% 0 45% 0)}}
+@keyframes flikker{0%,100%{opacity:1}50%{opacity:.4}70%{opacity:.9}}
+.knop{background:var(--bloed);color:#fff;border:0;padding:1rem 2rem;font:inherit;font-size:1.3rem;cursor:pointer;box-shadow:0 0 25px rgba(179,0,27,.6)}
+.knop:hover{animation:flikker .25s infinite}
+.kaarten{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;width:100%;max-width:900px}
+.kaart{background:var(--grijs);border:1px solid #3a2523;padding:1.2rem;cursor:pointer;text-align:left}
+.kaart:hover{border-color:var(--bloed);transform:rotate(-1deg)}
+.klein{font-size:.9rem;opacity:.6}
+.tijd{font-size:2rem;color:var(--groen);font-family:"Courier New",monospace}
+.schudden{animation:schud .12s infinite}
+@keyframes schud{0%{transform:translate(4px,2px)}25%{transform:translate(-5px,-3px)}50%{transform:translate(3px,-4px)}75%{transform:translate(-4px,4px)}100%{transform:translate(2px,-2px)}}
+.schok{position:fixed;inset:0;z-index:100;background:#000;display:none;align-items:center;justify-content:center;overflow:hidden}
+.schok.aan{display:flex}
+.schok svg{width:min(100vw,100vh*0.9);height:100vh;animation:groei .25s ease-out forwards,schud .08s .25s infinite}
+@keyframes groei{from{transform:scale(.3)}to{transform:scale(1.15)}}
+.schok.flits{animation:flits .15s 3}
+@keyframes flits{0%,100%{background:#000}50%{background:#a00}}
+.schok .tekst{position:absolute;bottom:6%;left:0;right:0;text-align:center;color:#fff;font-size:1.2rem;text-shadow:0 0 10px red}
+@media (prefers-reduced-motion:reduce){.glitch::before,.glitch::after{animation:none}}
