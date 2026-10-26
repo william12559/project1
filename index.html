@@ -1,171 +1,168 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Impossible Square</title>
-<style>
-body{
-    margin:0;
-    overflow:hidden;
-    background:black;
-}
+    <title>3D Horror Demo</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
 
-#player{
-    width:20px;
-    height:20px;
-    background:lime;
-    position:absolute;
-}
-
-.obstacle{
-    position:absolute;
-    background:red;
-}
-</style>
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 30px;
+            user-select: none;
+        }
+    </style>
 </head>
 <body>
 
-<div id="player"></div>
+<div id="crosshair">+</div>
 
-<script>
-const player = document.getElementById("player");
+<script type="module">
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
-let x = innerWidth/2;
-let y = innerHeight/2;
-let speed = 6;
-let gameSpeed = 3;
-let reversed = false;
-let score = 0;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-const keys = {};
-document.addEventListener("keydown",e=>keys[e.key]=true);
-document.addEventListener("keyup",e=>keys[e.key]=false);
+const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
 
-const obstacles = [];
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-function spawnObstacle(){
+// vloer
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(100, 100),
+    new THREE.MeshStandardMaterial({
+        color: 0x444444
+    })
+);
 
-    let side = Math.floor(Math.random()*4);
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
 
-    let obs = document.createElement("div");
-    obs.className = "obstacle";
+// licht
+const light = new THREE.PointLight(0xffffff, 100);
+light.position.set(0, 10, 0);
+scene.add(light);
 
-    let size = 20 + Math.random()*60;
-    obs.style.width = size+"px";
-    obs.style.height = size+"px";
+// muren
+for(let i = 0; i < 50; i++){
 
-    let ox,oy,vx,vy;
-
-    if(side===0){
-        ox=-size;
-        oy=Math.random()*innerHeight;
-        vx=gameSpeed;
-        vy=0;
-    }
-
-    if(side===1){
-        ox=innerWidth;
-        oy=Math.random()*innerHeight;
-        vx=-gameSpeed;
-        vy=0;
-    }
-
-    if(side===2){
-        ox=Math.random()*innerWidth;
-        oy=-size;
-        vx=0;
-        vy=gameSpeed;
-    }
-
-    if(side===3){
-        ox=Math.random()*innerWidth;
-        oy=innerHeight;
-        vx=0;
-        vy=-gameSpeed;
-    }
-
-    obs.x=ox;
-    obs.y=oy;
-    obs.vx=vx;
-    obs.vy=vy;
-
-    document.body.appendChild(obs);
-
-    obstacles.push(obs);
-}
-
-setInterval(spawnObstacle,250);
-
-function collide(a,b){
-    return (
-        a.x < b.x + b.w &&
-        a.x + a.w > b.x &&
-        a.y < b.y + b.h &&
-        a.y + a.h > b.y
+    const wall = new THREE.Mesh(
+        new THREE.BoxGeometry(5,5,1),
+        new THREE.MeshStandardMaterial({
+            color: 0xffffaa
+        })
     );
+
+    wall.position.set(
+        Math.random()*80-40,
+        2.5,
+        Math.random()*80-40
+    );
+
+    scene.add(wall);
 }
 
-function update(){
+// monster
+const monster = new THREE.Mesh(
+    new THREE.BoxGeometry(2,2,2),
+    new THREE.MeshStandardMaterial({
+        color: 0xff0000
+    })
+);
 
-    let move = reversed ? -1 : 1;
+monster.position.set(10,1,10);
+scene.add(monster);
 
-    if(keys["ArrowLeft"] || keys["a"]) x -= speed*move;
-    if(keys["ArrowRight"] || keys["d"]) x += speed*move;
-    if(keys["ArrowUp"] || keys["w"]) y -= speed*move;
-    if(keys["ArrowDown"] || keys["s"]) y += speed*move;
+camera.position.y = 2;
 
-    x=Math.max(0,Math.min(innerWidth-20,x));
-    y=Math.max(0,Math.min(innerHeight-20,y));
+// beweging
+const keys = {};
 
-    player.style.left=x+"px";
-    player.style.top=y+"px";
+document.addEventListener("keydown",e=>{
+    keys[e.key.toLowerCase()] = true;
+});
 
-    for(let obs of obstacles){
+document.addEventListener("keyup",e=>{
+    keys[e.key.toLowerCase()] = false;
+});
 
-        obs.x += obs.vx;
-        obs.y += obs.vy;
+// muis lock
+document.body.addEventListener("click",()=>{
+    document.body.requestPointerLock();
+});
 
-        obs.style.left=obs.x+"px";
-        obs.style.top=obs.y+"px";
+let rotY = 0;
 
-        let hit = collide(
-            {x,y,w:20,h:20},
-            {
-                x:obs.x,
-                y:obs.y,
-                w:parseInt(obs.style.width),
-                h:parseInt(obs.style.height)
-            }
-        );
+document.addEventListener("mousemove",(e)=>{
 
-        if(hit){
-            alert("GAME OVER\nScore: "+Math.floor(score));
-            location.reload();
-        }
+    if(document.pointerLockElement){
+
+        rotY -= e.movementX * 0.002;
+        camera.rotation.y = rotY;
+    }
+});
+
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    const speed = 0.1;
+
+    if(keys["w"]){
+        camera.position.x -= Math.sin(rotY)*speed;
+        camera.position.z -= Math.cos(rotY)*speed;
     }
 
-    score += 0.016;
-
-    if(score > 10){
-        gameSpeed = 5;
+    if(keys["s"]){
+        camera.position.x += Math.sin(rotY)*speed;
+        camera.position.z += Math.cos(rotY)*speed;
     }
 
-    if(score > 20){
-        gameSpeed = 8;
+    if(keys["a"]){
+        camera.position.x -= Math.cos(rotY)*speed;
+        camera.position.z += Math.sin(rotY)*speed;
     }
 
-    if(score > 30){
-        document.body.style.transform =
-            `rotate(${score*2}deg)`;
+    if(keys["d"]){
+        camera.position.x += Math.cos(rotY)*speed;
+        camera.position.z -= Math.sin(rotY)*speed;
     }
 
-    if(score > 60){
-        reversed = true;
+    // monster volgt speler
+    monster.position.x += (camera.position.x - monster.position.x) * 0.005;
+    monster.position.z += (camera.position.z - monster.position.z) * 0.005;
+
+    const distance = camera.position.distanceTo(monster.position);
+
+    if(distance < 1.5){
+        alert("GAME OVER");
+        location.reload();
     }
 
-    requestAnimationFrame(update);
+    renderer.render(scene,camera);
 }
 
-update();
+animate();
+
+window.addEventListener("resize",()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
 </script>
 
 </body>
