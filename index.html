@@ -1,167 +1,485 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>3D Horror Demo</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<title>Minecraft Lite</title>
 
-        #crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 30px;
-            user-select: none;
-        }
-    </style>
+<style>
+html,body{
+    margin:0;
+    overflow:hidden;
+    background:#87ceeb;
+}
+
+#hud{
+    position:absolute;
+    top:10px;
+    left:10px;
+    color:white;
+    font-family:Arial;
+    background:rgba(0,0,0,.5);
+    padding:10px;
+}
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
 </head>
 <body>
 
-<div id="crosshair">+</div>
+<div id="hud">
+Minecraft Lite<br>
+WASD = bewegen<br>
+Spatie = springen
+</div>
 
 <script type="module">
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import * as THREE from "three";
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+
+scene.fog = new THREE.Fog(
+    0x87ceeb,
+    20,
+    120
+);
 
 const camera = new THREE.PerspectiveCamera(
     75,
-    window.innerWidth / window.innerHeight,
+    window.innerWidth/window.innerHeight,
     0.1,
     1000
 );
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer({
+    antialias:true
+});
 
-// vloer
-const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(100, 100),
-    new THREE.MeshStandardMaterial({
-        color: 0x444444
-    })
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
 );
 
-floor.rotation.x = -Math.PI / 2;
-scene.add(floor);
+document.body.appendChild(
+    renderer.domElement
+);
 
-// licht
-const light = new THREE.PointLight(0xffffff, 100);
-light.position.set(0, 10, 0);
-scene.add(light);
+/* --------------------
+   LIGHTS
+---------------------*/
 
-// muren
-for(let i = 0; i < 50; i++){
+const sun = new THREE.DirectionalLight(
+    0xffffff,
+    2
+);
 
-    const wall = new THREE.Mesh(
-        new THREE.BoxGeometry(5,5,1),
-        new THREE.MeshStandardMaterial({
-            color: 0xffffaa
-        })
+sun.position.set(
+    50,
+    100,
+    50
+);
+
+scene.add(sun);
+
+scene.add(
+    new THREE.AmbientLight(
+        0xffffff,
+        0.5
+    )
+);
+
+/* --------------------
+   WORLD GENERATION
+---------------------*/
+
+const blocks = [];
+
+function createBlock(
+    x,
+    y,
+    z,
+    color
+){
+
+    const block =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(1,1,1),
+            new THREE.MeshLambertMaterial({
+                color
+            })
+        );
+
+    block.position.set(
+        x,
+        y,
+        z
     );
 
-    wall.position.set(
-        Math.random()*80-40,
-        2.5,
-        Math.random()*80-40
-    );
+    scene.add(block);
 
-    scene.add(wall);
+    blocks.push(block);
+
+    return block;
 }
 
-// monster
-const monster = new THREE.Mesh(
-    new THREE.BoxGeometry(2,2,2),
-    new THREE.MeshStandardMaterial({
-        color: 0xff0000
-    })
+/* --------------------
+   TERRAIN
+---------------------*/
+
+for(
+let x=-25;
+x<25;
+x++
+){
+
+for(
+let z=-25;
+z<25;
+z++
+){
+
+const h =
+Math.floor(
+Math.random()*3
 );
 
-monster.position.set(10,1,10);
-scene.add(monster);
+for(
+let y=0;
+y<=h;
+y++
+){
 
-camera.position.y = 2;
+let color =
+0x8B4513;
 
-// beweging
+if(
+y===h
+){
+color=0x55aa55;
+}
+
+createBlock(
+x,
+y,
+z,
+color
+);
+
+}
+
+}
+
+}
+
+/* --------------------
+   PLAYER
+---------------------*/
+
+camera.position.set(
+0,
+6,
+5
+);
+
+let velocityY = 0;
+let grounded = false;
+
 const keys = {};
 
-document.addEventListener("keydown",e=>{
-    keys[e.key.toLowerCase()] = true;
-});
+document.addEventListener(
+"keydown",
+e=>{
+keys[e.key.toLowerCase()]
+= true;
+}
+);
 
-document.addEventListener("keyup",e=>{
-    keys[e.key.toLowerCase()] = false;
-});
+document.addEventListener(
+"keyup",
+e=>{
+keys[e.key.toLowerCase()]
+= false;
+}
+);
 
-// muis lock
-document.body.addEventListener("click",()=>{
-    document.body.requestPointerLock();
-});
+/* --------------------
+   MOUSE LOOK
+---------------------*/
 
-let rotY = 0;
+let pitch = 0;
+let yaw = 0;
 
-document.addEventListener("mousemove",(e)=>{
+document.body.addEventListener(
+"click",
+()=>{
+document.body.requestPointerLock();
+}
+);
 
-    if(document.pointerLockElement){
+document.addEventListener(
+"mousemove",
+e=>{
 
-        rotY -= e.movementX * 0.002;
-        camera.rotation.y = rotY;
-    }
-});
+if(
+document.pointerLockElement
+){
+
+yaw -=
+e.movementX * 0.002;
+
+pitch -=
+e.movementY * 0.002;
+
+pitch =
+Math.max(
+-1.5,
+Math.min(
+1.5,
+pitch
+)
+);
+
+}
+
+}
+);
+
+/* --------------------
+   BLOCK PLACE
+---------------------*/
+
+window.addEventListener(
+"contextmenu",
+e=>{
+e.preventDefault();
+
+const block =
+new THREE.Mesh(
+new THREE.BoxGeometry(),
+new THREE.MeshLambertMaterial({
+color:0x55aa55
+})
+);
+
+block.position.set(
+Math.round(
+camera.position.x
+),
+Math.round(
+camera.position.y-2
+),
+Math.round(
+camera.position.z
+)
+);
+
+scene.add(block);
+
+blocks.push(block);
+
+}
+);
+
+/* --------------------
+   BLOCK BREAK
+---------------------*/
+
+window.addEventListener(
+"mousedown",
+e=>{
+
+if(e.button!==0)
+return;
+
+const raycaster =
+new THREE.Raycaster();
+
+raycaster.setFromCamera(
+new THREE.Vector2(0,0),
+camera
+);
+
+const hit =
+raycaster.intersectObjects(
+blocks
+);
+
+if(hit.length){
+
+scene.remove(
+hit[0].object
+);
+
+blocks.splice(
+blocks.indexOf(
+hit[0].object
+),
+1
+);
+
+}
+
+}
+);
+
+/* --------------------
+   DAY NIGHT
+---------------------*/
+
+let time = 0;
+
+/* --------------------
+   INVENTORY
+---------------------*/
+
+const inventory = {
+dirt:0,
+grass:0,
+stone:0
+};
+
+/* --------------------
+   GAME LOOP
+---------------------*/
 
 function animate(){
 
-    requestAnimationFrame(animate);
+requestAnimationFrame(
+animate
+);
 
-    const speed = 0.1;
+const speed = 0.08;
 
-    if(keys["w"]){
-        camera.position.x -= Math.sin(rotY)*speed;
-        camera.position.z -= Math.cos(rotY)*speed;
-    }
+camera.rotation.order =
+"YXZ";
 
-    if(keys["s"]){
-        camera.position.x += Math.sin(rotY)*speed;
-        camera.position.z += Math.cos(rotY)*speed;
-    }
+camera.rotation.y = yaw;
+camera.rotation.x = pitch;
 
-    if(keys["a"]){
-        camera.position.x -= Math.cos(rotY)*speed;
-        camera.position.z += Math.sin(rotY)*speed;
-    }
+if(keys["w"]){
 
-    if(keys["d"]){
-        camera.position.x += Math.cos(rotY)*speed;
-        camera.position.z -= Math.sin(rotY)*speed;
-    }
+camera.position.x -=
+Math.sin(yaw)
+* speed;
 
-    // monster volgt speler
-    monster.position.x += (camera.position.x - monster.position.x) * 0.005;
-    monster.position.z += (camera.position.z - monster.position.z) * 0.005;
+camera.position.z -=
+Math.cos(yaw)
+* speed;
 
-    const distance = camera.position.distanceTo(monster.position);
+}
 
-    if(distance < 1.5){
-        alert("GAME OVER");
-        location.reload();
-    }
+if(keys["s"]){
 
-    renderer.render(scene,camera);
+camera.position.x +=
+Math.sin(yaw)
+* speed;
+
+camera.position.z +=
+Math.cos(yaw)
+* speed;
+
+}
+
+if(keys["a"]){
+
+camera.position.x -=
+Math.cos(yaw)
+* speed;
+
+camera.position.z +=
+Math.sin(yaw)
+* speed;
+
+}
+
+if(keys["d"]){
+
+camera.position.x +=
+Math.cos(yaw)
+* speed;
+
+camera.position.z -=
+Math.sin(yaw)
+* speed;
+
+}
+
+/* gravity */
+
+velocityY -= 0.01;
+
+camera.position.y +=
+velocityY;
+
+if(camera.position.y < 6){
+
+camera.position.y = 6;
+
+grounded = true;
+
+velocityY = 0;
+
+}else{
+grounded = false;
+}
+
+if(
+keys[" "] &&
+grounded
+){
+
+velocityY = 0.25;
+
+}
+
+/* day and night */
+
+time += 0.001;
+
+sun.position.x =
+Math.cos(time)
+* 100;
+
+sun.position.y =
+Math.sin(time)
+* 100;
+
+renderer.render(
+scene,
+camera
+);
+
 }
 
 animate();
 
-window.addEventListener("resize",()=>{
-    camera.aspect = window.innerWidth/window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth,window.innerHeight);
-});
+/* --------------------
+   RESIZE
+---------------------*/
+
+window.addEventListener(
+"resize",
+()=>{
+
+camera.aspect =
+window.innerWidth /
+window.innerHeight;
+
+camera.updateProjectionMatrix();
+
+renderer.setSize(
+window.innerWidth,
+window.innerHeight
+);
+
+}
+);
 
 </script>
 
