@@ -5,13 +5,13 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#000;overflow:hidden;touch-action:none}
 body{color:#b9b0a2;font:17px/1.5 Georgia,serif;display:flex;align-items:center;justify-content:center}
-#g{display:block;width:min(100vw,150vh);height:auto;touch-action:none}
+#g{display:block;width:min(100vw,160vh);height:auto;touch-action:none;cursor:crosshair}
 #vg{position:fixed;inset:0;z-index:5;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 40%,rgba(40,0,0,calc(.25 + var(--a)*.6)) 75%,#000 115%)}
 #gr{position:fixed;inset:0;width:100%;height:100%;z-index:6;pointer-events:none;opacity:.15;mix-blend-mode:screen;image-rendering:pixelated}
 #hud{position:fixed;left:10px;top:8px;z-index:30;font:14px "Courier New",monospace;color:#c9c0b0;text-shadow:0 0 6px #000;pointer-events:none;line-height:1.6}
 #hart{color:#c0001c}#hart{animation:pl 1s infinite;display:inline-block}@keyframes pl{50%{transform:scale(1.25)}}
 #ms{position:fixed;left:0;right:0;bottom:9%;text-align:center;z-index:31;color:#d9cfc0;font-style:italic;font-size:1.1rem;text-shadow:0 0 8px #000;opacity:0;transition:opacity .5s;pointer-events:none;padding:0 1rem}#ms.on{opacity:1}
-#eb{display:none;position:fixed;right:16px;bottom:16px;z-index:40;width:76px;height:76px;border-radius:50%;background:#500;color:#fff;border:2px solid #a00;font:bold 24px Georgia}
+#eb{display:none;position:fixed;right:16px;bottom:16px;z-index:40;width:76px;height:76px;border-radius:50%;background:#500;color:#fff;border:2px solid #a00;font:bold 16px Georgia}
 @media(pointer:coarse){#eb{display:block}}
 #ru{position:fixed;left:10px;bottom:8px;z-index:30;background:#111;color:#b9b0a2;border:1px solid #331;padding:.15rem .5rem;font:13px "Courier New",monospace;cursor:pointer}
 #wf{position:fixed;inset:0;background:#fff;z-index:150;opacity:0;pointer-events:none;transition:opacity 2.5s}
@@ -36,13 +36,13 @@ body.cm .bi{animation-duration:.5s}
 @media(prefers-reduced-motion:reduce){.bi{animation:none}}
 </style></head>
 <body>
-<canvas id="g" width="768" height="512"></canvas>
+<canvas id="g" width="480" height="300"></canvas>
 <canvas id="gr" width="160" height="90"></canvas><div id="vg"></div><div id="wf"></div>
 <div id="hud"><div id="hl"></div><div id="hart">&#9829; 62</div></div><div id="ms"></div>
-<button id="eb">E</button><button id="ru">Rustig: uit</button>
+<button id="eb">VUUR</button><button id="ru">Rustig: uit</button>
 <div class="pn on" id="poort"><h1>ONTSNAP HET SPOOKHUIS</h1>
-<p>Je wordt wakker in een verlaten huis. De voordeur zit op slot. Vind de drie sleutels, open de deuren en ontsnap voordat ze je vindt.</p>
-<p style="opacity:.7;font-size:.95rem">Lopen: pijltjes of WASD (telefoon: sleep over het scherm). E of spatie: verstoppen in een kast (telefoon: de knop rechtsonder). In een kast ziet ze je niet, maar je houdt je adem maar even in. Ze loopt dwars door muren.</p>
+<p>Je wordt wakker in een verlaten huis, met een jachtgeweer in je handen. De voordeur zit op slot. Vind de drie sleutels en ontsnap. Schiet je haar neer, dan lost ze even op, maar ze komt altijd terug.</p>
+<p style="opacity:.7;font-size:.95rem">Lopen: WASD. Kijken: muis (klik eerst op het beeld) of pijltjes links/rechts. Schieten: klik of spatie. Telefoon: linkerhelft slepen = lopen, rechterhelft slepen = kijken, VUUR-knop = schieten. Je hebt maar weinig kogels: zoek de kistjes. De minikaart rechtsboven laat de sleutels zien.</p>
 <p style="color:#a0001a;font-size:.95rem">WAARSCHUWING: harde gil, schuddend scherm, flitsen, bloed en plotselinge beelden. Niet voor kinderen. Niet bij epilepsie, hartproblemen of paniek. Zet je volume niet te hoog.</p>
 <input id="nm" maxlength="20" placeholder="Hoe heet je? (mag leeg)" autocomplete="off">
 <button class="kn" id="go">Speel (extreem)</button><button class="kn s" id="ca">Speel rustig (zachter, geen flitsen of schudden)</button></div>
@@ -100,80 +100,105 @@ function schrik(t,s){
 function sluit(){if(!open||Date.now()<tOpen)return;$('#sk').className='sk';jit(false);open=false;an(-18);if(na){var f=na;na=null;setTimeout(f,900)}}
 $('#sk').addEventListener('click',sluit);
 
-/* ===== SPEL ===== */
-var MP,keys,IT,pl,gh,hid,hidT,hcool,hx,hy,mt,dash,nDash,nBlk,blk,lf,wh,bt,stp,fx,fy,sT=null,ks={},tj=null;
+/* ===== SPEL (eerste persoon) ===== */
+var RW=480,RH=300,FOV=1.1,zb=new Float32Array(RW),MP,keys,S,pl,gh,hp,ammo,mt=0,inv=0,rf=0,shk=0,fl=0,rec=0,cd=0,blk=0,lf=0,wh=0,dash=0,nDash=0,nBlk=0,kills=0,gdead=false,resp=0,sT=null,ks={},tp={},tm=null,tl=null,rch='#',rtx=0,rsd=0,mv=0,bobT=0,stp=0,bt=0;
+var COL={'#':[132,106,84],H:[104,64,36],T:[116,78,46],A:[170,38,38],B:[46,80,190],X:[190,146,34]};
 var OB=['Zoek de rode sleutel. Misschien in de keuken (linksboven).','Open de bibliotheek (deur boven in de hal) en zoek de blauwe sleutel.','Open de kelder (rechtsboven) en pak de gouden sleutel.','Naar de voordeur onderaan! Ze komt.'];
 function tile(a,b){if(a===0||a===23||b===0||b===15)return(b===15&&a===11)?'X':'#';if(b===7){if(a===4)return'.';if(a===12)return'A';if(a===19)return'B';return'#'}if(b<7&&(a===8||a===16))return'#';if(b===11&&(a===5||a===6||a===16||a===17))return'T';if((a===1&&(b===1||b===9||b===14))||(a===15&&b===1)||(a===22&&(b===6||b===9||b===14)))return'H';return'.'}
+function mkS(w,h,f){var c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'));return c}
+var SG=mkS(48,96,function(q){q.fillStyle='#7d786f';q.beginPath();q.moveTo(14,34);q.lineTo(34,34);q.lineTo(44,88);q.lineTo(38,80);q.lineTo(32,92);q.lineTo(26,82);q.lineTo(20,94);q.lineTo(14,82);q.lineTo(8,90);q.lineTo(4,88);q.fill();q.fillStyle='#d6d0c4';q.beginPath();q.ellipse(24,22,10,14,0,0,7);q.fill();q.fillStyle='#050303';q.fillRect(12,6,4,56);q.fillRect(32,6,4,56);q.fillRect(14,5,20,5);q.fillRect(18,17,5,8);q.fillRect(26,17,5,8);q.fillRect(21,31,6,9);q.fillStyle='#f22';q.fillRect(20,21,2,2);q.fillRect(28,21,2,2);q.strokeStyle='#cfc9bd';q.lineWidth=3;q.beginPath();q.moveTo(15,38);q.lineTo(8,70);q.moveTo(33,38);q.lineTo(40,70);q.stroke()});
+var SK=['#e33','#47f','#fc3'].map(function(c){return mkS(24,24,function(q){q.shadowColor=c;q.shadowBlur=6;q.fillStyle=c;q.beginPath();q.arc(7,12,5,0,7);q.fill();q.fillRect(11,10,11,4);q.fillRect(17,13,3,5)})});
+var SA=mkS(24,24,function(q){q.fillStyle='#6b1a14';q.fillRect(2,8,20,14);q.fillStyle='#d9b24a';q.fillRect(5,3,4,9);q.fillRect(10,3,4,9);q.fillRect(15,3,4,9)});
+var SH=mkS(24,24,function(q){q.fillStyle='#ddd';q.fillRect(3,6,18,16);q.fillStyle='#c11';q.fillRect(10,8,4,12);q.fillRect(6,12,12,4)});
 function nk(){return(keys.k1?1:0)+(keys.k2?1:0)+(keys.k3?1:0)}
 function fmt(ms){var s=Math.floor(ms/1000);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
 function say(t,ms){var m=$('#ms');m.textContent=N(t);m.classList.add('on');clearTimeout(sT);sT=setTimeout(function(){m.classList.remove('on')},ms||2800)}
 function reset(){MP=[];for(var b=0;b<16;b++){var r=[];for(var a=0;a<24;a++)r.push(tile(a,b));MP.push(r)}
- keys={};IT=[{id:'k1',x:208,y:80,c:'#e33',m:'Een rode sleutel. Hij is nog warm.'},{id:'k2',x:336,y:80,c:'#47f',m:'Een blauwe sleutel, geklemd in een dode hand.'},{id:'k3',x:656,y:112,c:'#fc3',m:'De gouden sleutel. Achter je hoor je ademen.'}];
- pl={x:368,y:400};gh={x:688,y:48,tx:688,ty:48,t:0,w:0};hid=false;hidT=0;hcool=0;hx=0;hy=0;mt=0;dash=0;nDash=22000;nBlk=16000;blk=0;lf=0;wh=0;bt=0;stp=0;fx=0;fy=-1;angst=10}
-function sol(px,py){var r=MP[(py/T)|0],c=r&&r[(px/T)|0];return c==='#'||c==='T'||c==='A'||c==='B'||c==='X'}
-function hit(px,py){var r=8;return sol(px-r,py-r)||sol(px+r,py-r)||sol(px-r,py+r)||sol(px+r,py+r)}
-function bump(px,py){if(Date.now()<bt)return;var r=8,cs=[[px-r,py-r],[px+r,py-r],[px-r,py+r],[px+r,py+r]];for(var i=0;i<4;i++){var q=MP[(cs[i][1]/T)|0],c=q&&q[(cs[i][0]/T)|0];if(c==='A'||c==='B'||c==='X'){bt=Date.now()+900;var k={A:'k1',B:'k2',X:'k3'}[c];if(keys[k])opn(c,(cs[i][0]/T)|0,(cs[i][1]/T)|0);else say(c==='X'?'De voordeur zit op slot. Je hebt de gouden sleutel nodig.':'Op slot. Je hebt de '+(c==='A'?'rode':'blauwe')+' sleutel nodig.');return}}}
+ keys={};S=[{x:6.5,y:2.5,id:'k1',im:SK[0],sc:.22,up:.12,mc:'#e33',m:'Een rode sleutel. Hij is nog warm.'},{x:10.5,y:2.5,id:'k2',im:SK[1],sc:.22,up:.12,mc:'#47f',m:'Een blauwe sleutel, geklemd in een dode hand.'},{x:20.5,y:3.5,id:'k3',im:SK[2],sc:.22,up:.12,mc:'#fc3',m:'De gouden sleutel. Achter je hoor je ademen.'}];
+ [[3.5,9.5],[20.5,12.5],[2.5,5.5],[14.5,5.5],[18.5,5.5]].forEach(function(p){S.push({x:p[0],y:p[1],id:'a',im:SA,sc:.2,up:0})});[[2.5,13.5],[21.5,2.5]].forEach(function(p){S.push({x:p[0],y:p[1],id:'h',im:SH,sc:.2,up:0})});
+ pl={x:11.5,y:12.5,a:-Math.PI/2};gh={x:21.5,y:1.5,hp:3,stun:0,w:0,im:SG};gdead=false;resp=0;kills=0;hp=3;ammo=6;mt=0;inv=0;rf=0;shk=0;fl=0;rec=0;cd=0;blk=0;lf=0;wh=0;dash=0;nDash=22000;nBlk=16000;stp=0;angst=10}
+function sol(px,py){var r=MP[py|0],c=r&&r[px|0];return c==='#'||c==='T'||c==='A'||c==='B'||c==='X'||c==='H'}
+function hit(px,py){var r=.25;return sol(px-r,py-r)||sol(px+r,py-r)||sol(px-r,py+r)||sol(px+r,py+r)}
+function bump(px,py){if(Date.now()<bt)return;var r=.25,cs=[[px-r,py-r],[px+r,py-r],[px-r,py+r],[px+r,py+r]];for(var i=0;i<4;i++){var a=cs[i][0]|0,b=cs[i][1]|0,c=(MP[b]||0)[a];if(c==='A'||c==='B'||c==='X'){bt=Date.now()+900;var k={A:'k1',B:'k2',X:'k3'}[c];if(keys[k])opn(c,a,b);else say(c==='X'?'De voordeur zit op slot. Je hebt de gouden sleutel nodig.':'Op slot. Je hebt de '+(c==='A'?'rode':'blauwe')+' sleutel nodig.');return}}}
 function opn(c,a,b){MP[b][a]='.';krak();an(8);if(c==='X')win();else say(c==='A'?'De deur naar de bibliotheek zwaait open.':'De kelderdeur kraakt open. Het stinkt.')}
-function take(it){it.g=1;keys[it.id]=1;say(it.m,3800);ns(.5,2200,8,.18,'bandpass',0);an(10);if(it.id==='k2')setTimeout(function(){if(st==='play')schrik('Achter je.','flits')},1200)}
-function act(){if(st!=='play'||open)return;if(hid){unhide(0);return}
- var a=(pl.x/T)|0,b=(pl.y/T)|0,c=null;for(var j=-1;j<=1;j++)for(var i=-1;i<=1;i++)if(MP[b+j]&&MP[b+j][a+i]==='H')c=[a+i,b+j];
- if(c&&hcool<=0){hid=true;hidT=7000;hx=c[0]*T+16;hy=c[1]*T+16;pl.x=hx;pl.y=hy;ns(.3,200,1,.3,'lowpass',0);say('Je houdt je adem in...',2200)}else say(c?'Je moet even wachten.':'Hier is niets.',1200)}
-function unhide(f){hid=false;hcool=4000;if(Math.hypot(gh.x-hx,gh.y-hy)<64)return caught();if(f)say('Je kunt je adem niet langer inhouden.')}
+function take(s){if(s.id==='h'){if(hp>=3)return;hp++;say('Je vindt een verbandje. +1 leven.',2000)}else if(s.id==='a'){ammo=Math.min(12,ammo+3);say('+3 kogels',1800)}else{keys[s.id]=1;say(s.m,3800);an(10);if(s.id==='k2')setTimeout(function(){if(st==='play')schrik('Achter je.','flits')},1200)}s.g=1;ns(.5,2200,8,.18,'bandpass',0)}
+function shot(){ns(.35,900,.6,1,'lowpass',0,.05);ns(.18,3500,1,.5,'highpass',0,.05);boem(1)}
+function clampG(){gh.x=Math.max(1.2,Math.min(22.8,gh.x));gh.y=Math.max(1.2,Math.min(14.8,gh.y))}
+function hurt(){hp--;inv=2;rf=.5;shk=.4;kras();boem();ns(.6,3000,3,.6,'bandpass');gh.stun=1;var a=Math.atan2(gh.y-pl.y,gh.x-pl.x);gh.x+=Math.cos(a)*3;gh.y+=Math.sin(a)*3;clampG();an(10);if(hp<=0)caught();else say('Ze krabde je! Nog '+hp+(hp>1?' levens':' leven')+'.',2000)}
 function caught(){if(st!=='play')return;st='dead';deaths++;schrik('ZE HEEFT JE.');na=function(){eind('ZE HEEFT JE','Na '+fmt(mt)+'. Je had '+nk()+' van de 3 sleutels.','Opnieuw proberen',again)}}
 var eFn=null;function eind(t,m,b,f){$('#et').textContent=t;$('#ex').textContent=m;$('#eb2').textContent=b;eFn=f;$('#eind').classList.add('on')}
 $('#eb2').addEventListener('click',function(){$('#eind').classList.remove('on');if(eFn)eFn()});
-function again(){var w=$('#wf');w.style.opacity=0;reset();st='play';say('Je wordt wakker in de hal. De voordeur zit op slot.',4000)}
+function again(){$('#wf').style.opacity=0;reset();st='play';say('Je wordt wakker in de hal. De voordeur zit op slot.',4000)}
 function win(){if(st!=='play')return;st='win';klop(1);$('#wf').style.opacity=1;say('De voordeur zwaait open...',2500);
  setTimeout(function(){eind('JE BENT ONTSNAPT','Frisse lucht. Stilte. Je tijd: '+fmt(mt)+(deaths?', na '+deaths+'x dood':'')+'.',cm?'Opnieuw spelen':'Kijk achterom',function(){if(cm)again();else{schrik('Ze stond al buiten.');na=function(){eind('ONTSNAPT?','Misschien. Of je nam haar mee.','Opnieuw spelen',again)}}})},2800)}
-function upd(dt){var ms=dt*16.67;mt+=ms;
- var dx=(ks.arrowright||ks.d?1:0)-(ks.arrowleft||ks.a?1:0),dy=(ks.arrowdown||ks.s?1:0)-(ks.arrowup||ks.w?1:0);
- if(tj){dx=tj.dx;dy=tj.dy}var m=Math.hypot(dx,dy);if(m>0){fx=dx/m;fy=dy/m}if(m>1){dx/=m;dy/=m}
- hcool=Math.max(0,hcool-ms);
- if(hid){hidT-=ms;if(hidT<=0)unhide(1)}
- else if(m>0){var sp=2.1*dt,nx=pl.x+dx*sp,ny=pl.y+dy*sp;if(!hit(nx,pl.y))pl.x=nx;else bump(nx,pl.y);if(!hit(pl.x,ny))pl.y=ny;else bump(pl.x,ny);stp+=sp*Math.min(1,m);if(stp>26){stp=0;ns(.07,150,1,.3,'lowpass',R(-.3,.3))}}
- IT.forEach(function(it){if(!it.g&&Math.hypot(it.x-pl.x,it.y-pl.y)<20)take(it)});
+function fire(){if(st!=='play'||open||cd>0)return;if(ammo<=0){ns(.05,2500,1,.4,'highpass');say('Geen kogels meer!',1200);cd=.4;return}
+ ammo--;cd=.75;rec=1;fl=.09;shot();
+ if(!gdead){var dx=gh.x-pl.x,dy=gh.y-pl.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx)-pl.a;a=Math.atan2(Math.sin(a),Math.cos(a));
+  if(d<14&&Math.abs(a)<Math.atan(.5/d)+.06&&ray(pl.a+a)>d-.3){gh.hp-=d<4?2:1;gh.stun=1.8;var q=Math.atan2(dy,dx);gh.x+=Math.cos(q)*2.5;gh.y+=Math.sin(q)*2.5;clampG();ns(.8,2800,2,.5,'bandpass');boem(.8);an(-6);
+   if(gh.hp<=0){gdead=true;resp=R(16,22);ns(1.4,1800,1.5,.7,'bandpass');say('Ze lost op in een gil... maar ze komt terug.',3000)}}}}
+function ray(a){var dx=Math.cos(a)||1e-6,dy=Math.sin(a)||1e-6,mx=pl.x|0,my=pl.y|0,ddx=Math.abs(1/dx),ddy=Math.abs(1/dy),sx=dx<0?-1:1,sy=dy<0?-1:1,sdx=(dx<0?pl.x-mx:mx+1-pl.x)*ddx,sdy=(dy<0?pl.y-my:my+1-pl.y)*ddy,side=0,c='#';
+ for(var i=0;i<48;i++){if(sdx<sdy){sdx+=ddx;mx+=sx;side=0}else{sdy+=ddy;my+=sy;side=1}c=(MP[my]||0)[mx];if(!c||c==='#'||c==='T'||c==='A'||c==='B'||c==='X'||c==='H')break}
+ var d=side?sdy-ddy:sdx-ddx;rch=c||'#';rsd=side;var q=side?pl.x+dx*d:pl.y+dy*d;rtx=q-Math.floor(q);return Math.max(.05,d)}
+function upd(dt){mt+=dt*1000;
+ var f=(ks.w||ks.arrowup?1:0)-(ks.s||ks.arrowdown?1:0),sd=(ks.d?1:0)-(ks.a?1:0),tr=(ks.arrowright||ks.e?1:0)-(ks.arrowleft||ks.q?1:0);
+ if(tm){f=-tm.dy;sd=tm.dx}
+ pl.a+=tr*2.2*dt;var m=Math.hypot(f,sd);if(m>1){f/=m;sd/=m}mv=m>0?1:0;
+ if(m>0){var sp=3.3*dt,ca=Math.cos(pl.a),sa=Math.sin(pl.a),nx=pl.x+(ca*f-sa*sd)*sp,ny=pl.y+(sa*f+ca*sd)*sp;
+  if(!hit(nx,pl.y))pl.x=nx;else bump(nx,pl.y);if(!hit(pl.x,ny))pl.y=ny;else bump(pl.x,ny);
+  bobT+=dt*9;stp+=sp;if(stp>1.1){stp=0;ns(.07,150,1,.3,'lowpass',R(-.3,.3))}}
+ S.forEach(function(s){if(!s.g&&Math.hypot(s.x-pl.x,s.y-pl.y)<.6)take(s)});
+ cd=Math.max(0,cd-dt);fl=Math.max(0,fl-dt);rec=Math.max(0,rec-dt*3);inv=Math.max(0,inv-dt);rf=Math.max(0,rf-dt);shk=Math.max(0,shk-dt);blk=Math.max(0,blk-dt);lf=Math.max(0,lf-dt);
  var dd=Math.hypot(gh.x-pl.x,gh.y-pl.y);
- if(mt>=12000){if(!gh.w){gh.w=1;say('Je hoort iets bewegen boven je.',3000);krak()}
-  if(hid){gh.t-=ms;if(gh.t<=0){gh.t=1500;gh.tx=hx+R(-90,90);gh.ty=hy+R(-90,90)}}else{gh.tx=pl.x;gh.ty=pl.y}
-  dash=Math.max(0,dash-ms);if(mt>nDash&&dd>140&&!hid){dash=3000;nDash=mt+R(20000,32000);kras();say('Je hoort haar rennen!',2000)}
-  var gd=Math.hypot(gh.tx-gh.x,gh.ty-gh.y)||1,gs=Math.min(1.9,(.9+nk()*.25)*(dash>0?1.5:1))*(cm?.9:1)*dt;gh.x+=(gh.tx-gh.x)/gd*gs;gh.y+=(gh.ty-gh.y)/gd*gs;
-  if(!hid&&dd<20)caught()}
- var tg=mt<12000?8:Math.max(0,Math.min(100,(320-dd)/3.2));angst+=(tg-angst)*.02*dt;
- if(dd<220&&mt>=12000&&Date.now()>wh){wh=Date.now()+R(9000,16000);fluis();adem()}
- blk=Math.max(0,blk-ms);
- if(!cm&&mt>nBlk){nBlk=mt+R(18000,32000);blk=R(200,500);boem();klop(2);if(!hid&&mt>14000&&Math.random()<.4){var a=R(0,6.28),r=R(220,300);gh.x=Math.max(20,Math.min(W-20,pl.x+Math.cos(a)*r));gh.y=Math.max(20,Math.min(H-20,pl.y+Math.sin(a)*r))}}
- lf=Math.max(0,lf-1);if(Math.random()<.01+angst/5000)lf=5}
-function ghost(t){var b=Math.sin(t/300)*3,a=gh.x,c=gh.y+b;x.globalAlpha=.9;x.fillStyle='#8c877d';x.beginPath();x.moveTo(a-9,c-22);x.lineTo(a+9,c-22);x.lineTo(a+14,c+18);x.lineTo(a-14,c+18);x.fill();x.fillStyle='#cfc9bd';x.beginPath();x.ellipse(a,c-28,8,11,0,0,7);x.fill();x.fillStyle='#000';x.fillRect(a-5,c-31,3,6);x.fillRect(a+2,c-31,3,6);x.fillRect(a-2,c-22,4,6);x.strokeStyle='#050303';x.lineWidth=2;x.beginPath();x.moveTo(a-8,c-36);x.lineTo(a-12,c-4);x.moveTo(a+8,c-36);x.lineTo(a+12,c-4);x.stroke();x.globalAlpha=1}
-function draw(t){x.fillStyle='#000';x.fillRect(0,0,W,H);
- for(var j=0;j<16;j++)for(var i=0;i<24;i++){var c=MP[j][i],px=i*T,py=j*T;
-  if(c==='#'){x.fillStyle='#0b0706';x.fillRect(px,py,T,T);x.fillStyle='#1c120d';x.fillRect(px,py,T,3)}
-  else{x.fillStyle=((i+j)&1)?'#21160f':'#1b110b';x.fillRect(px,py,T,T);
-   if(c==='T'){x.fillStyle='#3a2616';x.fillRect(px+3,py+3,T-6,T-6);x.fillStyle='#2a1a0e';x.fillRect(px+3,py+T-9,T-6,6)}
-   else if(c==='H'){x.fillStyle='#2e1b10';x.fillRect(px+3,py+2,T-6,T-4);x.fillStyle='#120a06';for(var s=0;s<4;s++)x.fillRect(px+7+s*5,py+5,2,T-10)}
-   else if(c==='A'||c==='B'||c==='X'){x.fillStyle='#3b2312';x.fillRect(px,py,T,T);x.fillStyle=c==='A'?'#c22':c==='B'?'#36d':'#db2';x.beginPath();x.arc(px+16,py+16,5,0,7);x.fill()}}}
- x.fillStyle='rgba(190,175,150,.13)';x.font='bold 20px Georgia';x.fillText('KEUKEN',70,150);x.fillText('BIBLIOTHEEK',305,150);x.fillText('KELDER',590,150);x.fillText('HAL',350,320);
- IT.forEach(function(it){if(it.g)return;x.fillStyle=it.c;x.shadowColor=it.c;x.shadowBlur=14;x.beginPath();x.arc(it.x-5,it.y,5,0,7);x.fill();x.fillRect(it.x,it.y-2,12,4);x.fillRect(it.x+8,it.y,3,6);x.shadowBlur=0});
- if(mt>=12000)ghost(t);
- if(!hid){x.fillStyle='#9a8f80';x.beginPath();x.arc(pl.x,pl.y,8,0,7);x.fill();x.fillStyle='#ffe9b0';x.fillRect(pl.x+fx*8-2,pl.y+fy*8-2,4,4)}
- var r=((cm?135:118)+Math.sin(t/90)*3)*(lf>0?.4:1),g=x.createRadialGradient(pl.x,pl.y,14,pl.x,pl.y,r);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.6,'rgba(0,0,0,.45)');g.addColorStop(1,'rgba(0,0,0,.985)');x.fillStyle=g;x.fillRect(0,0,W,H);
- if(mt>=12000&&Math.hypot(gh.x-pl.x,gh.y-pl.y)<330){x.fillStyle='#f22';x.shadowColor='#f00';x.shadowBlur=12;x.beginPath();x.arc(gh.x-4,gh.y-28,2,0,7);x.arc(gh.x+5,gh.y-28,2,0,7);x.fill();x.shadowBlur=0}
- if(hid){x.fillStyle='rgba(0,0,0,.93)';for(var q=0;q<W;q+=14)x.fillRect(q,0,9,H)}
- if(blk>0){x.fillStyle='#000';x.fillRect(0,0,W,H)}}
-function loop(t){requestAnimationFrame(loop);var dt=Math.min(50,t-lt)/16.67;lt=t;if(st==='play'&&!open)upd(dt);draw(t);
- if((fc++&7)===0){document.body.style.setProperty('--a',(angst/100).toFixed(2));if(dg)dg.gain.value=.04+angst/1000}}
-setInterval(function(){if(st==='menu')return;$('#hl').innerHTML=fmt(mt)+' &nbsp; '+['k1','k2','k3'].map(function(k,i){return'<span style="color:'+(keys[k]?['#e33','#47f','#fc3'][i]:'#444')+'">&#9679;</span>'}).join(' ')+'<br>'+OB[nk()]+(hid?'<br>[E] naar buiten':'')},250);
+ if(gdead){resp-=dt;if(resp<=0){gdead=false;kills++;var a=R(0,6.28);gh.x=pl.x+Math.cos(a)*11;gh.y=pl.y+Math.sin(a)*11;clampG();gh.hp=Math.min(5,3+kills);gh.stun=0;say('Ze is terug.',2000);krak()}}
+ else if(mt>=12000){if(!gh.w){gh.w=1;say('Je hoort iets bewegen boven je.',3000);krak()}
+  gh.stun=Math.max(0,gh.stun-dt);dash=Math.max(0,dash-dt);
+  if(mt>nDash&&dd>5&&gh.stun<=0){dash=3;nDash=mt+R(20000,32000);kras();say('Je hoort haar rennen!',2000)}
+  if(gh.stun<=0){var gs=Math.min(3.1,(1.5+nk()*.35+kills*.2)*(dash>0?1.4:1))*(cm?.9:1)*dt,gd=dd||1;gh.x+=(pl.x-gh.x)/gd*gs;gh.y+=(pl.y-gh.y)/gd*gs;if(dd<.7&&inv<=0)hurt()}
+  if(dd<5&&Date.now()>wh){wh=Date.now()+R(9000,16000);fluis();adem()}}
+ var tg=(mt<12000||gdead)?6:Math.max(0,Math.min(100,(9-dd)*12));angst+=(tg-angst)*.02*dt*60;
+ if(!cm&&mt>nBlk){nBlk=mt+R(18000,32000);blk=R(.2,.5);boem();klop(2);if(!gdead&&mt>14000&&Math.random()<.4){var b=R(0,6.28);gh.x=pl.x+Math.cos(b)*7;gh.y=pl.y+Math.sin(b)*7;clampG()}}
+ if(Math.random()<.006+angst/8000)lf=.08}
+function sprites(t){var L=S.filter(function(s){return!s.g});if(!gdead)L.push(gh);
+ L.forEach(function(s){var dx=s.x-pl.x,dy=s.y-pl.y;s.d=Math.hypot(dx,dy);var a=Math.atan2(dy,dx)-pl.a;s.a=Math.atan2(Math.sin(a),Math.cos(a))});
+ L.sort(function(p,q){return q.d-p.d});
+ L.forEach(function(s){if(Math.abs(s.a)>FOV/2+.4||s.d<.25)return;var cd2=s.d*Math.cos(s.a);if(cd2<.15)return;var wl=RH/cd2*.9,g=s===gh,hh=wl*(g?.95:s.sc),ww=hh*(s.im.width/s.im.height),cx=(s.a/FOV+.5)*RW,x0=Math.round(cx-ww/2),bot=RH/2+wl/2-(s.up||0)*wl-(g?Math.sin(t/300)*wl*.03:0),top=bot-hh;
+  x.globalAlpha=g&&gh.stun>0?(.45+.5*Math.sin(t/40)):Math.max(.3,Math.min(1,1.35-s.d/11));
+  for(var c=Math.max(0,x0);c<Math.min(RW,x0+ww);c++)if(cd2<zb[c])x.drawImage(s.im,((c-x0)/ww*s.im.width)|0,0,1,s.im.height,c,top,1,hh);x.globalAlpha=1})}
+function gun(){var bx=Math.sin(bobT*.5)*(mv?8:0),by=Math.abs(Math.cos(bobT*.5))*(mv?6:0),th=-.1-rec*.2,cx=RW*.66+bx,cy=RH+24+by+rec*26;
+ x.save();x.translate(cx,cy);x.rotate(th);x.fillStyle='#14100c';x.fillRect(-10,-130,20,140);x.fillStyle='#2e2822';x.fillRect(-10,-130,5,140);x.fillStyle='#4a2f1a';x.fillRect(-17,-66,34,48);x.fillStyle='#34200f';x.fillRect(-17,-66,34,6);x.fillStyle='#050403';x.fillRect(-7,-136,14,8);x.restore();
+ x.fillStyle='#c79a78';x.beginPath();x.ellipse(cx-14+Math.sin(th)*40,cy-48,13,9,0,0,7);x.fill();
+ if(fl>0){var tx=cx+136*Math.sin(th),ty=cy-136*Math.cos(th),g=x.createRadialGradient(tx,ty,2,tx,ty,60);g.addColorStop(0,'rgba(255,240,180,.95)');g.addColorStop(1,'rgba(255,120,20,0)');x.fillStyle=g;x.fillRect(tx-60,ty-60,120,120)}}
+function mini(){var s=4,ox=RW-24*s-6,oy=6;x.globalAlpha=.8;for(var j=0;j<16;j++)for(var i=0;i<24;i++){var c=MP[j][i];x.fillStyle=c==='.'?'#2a1f16':c==='#'?'#000':c==='A'?'#c22':c==='B'?'#36d':c==='X'?'#db2':'#5a3a22';x.fillRect(ox+i*s,oy+j*s,s-1,s-1)}
+ S.forEach(function(q){if(!q.g&&q.mc){x.fillStyle=q.mc;x.fillRect(ox+q.x*s-1,oy+q.y*s-1,3,3)}});x.fillStyle='#fff';x.fillRect(ox+pl.x*s-1,oy+pl.y*s-1,3,3);x.strokeStyle='#fff';x.beginPath();x.moveTo(ox+pl.x*s,oy+pl.y*s);x.lineTo(ox+pl.x*s+Math.cos(pl.a)*7,oy+pl.y*s+Math.sin(pl.a)*7);x.stroke();x.globalAlpha=1}
+function render(t){
+ var g=x.createLinearGradient(0,0,0,RH/2);g.addColorStop(0,'#0a0807');g.addColorStop(1,'#2b2420');x.fillStyle=g;x.fillRect(0,0,RW,RH/2);
+ g=x.createLinearGradient(0,RH/2,0,RH);g.addColorStop(0,'#150e09');g.addColorStop(1,'#4d3421');x.fillStyle=g;x.fillRect(0,RH/2,RW,RH/2);
+ var oy=(shk>0?R(-5,5):0)+Math.sin(bobT)*3*mv,lk=lf>0?.45:1;
+ for(var i=0;i<RW;i++){var da=(i/RW-.5)*FOV,d=ray(pl.a+da)*Math.cos(da);zb[i]=d;var h=RH/d*.9,top=(RH-h)/2+oy;
+  var b=Math.max(.22,Math.min(1,1.3-d/13))*(1+.6*Math.max(0,1-Math.abs(da)/.4)*Math.max(0,1-d/11))*lk*(1+fl*9)*(rsd?.78:1),c=COL[rch]||COL['#'],sp=(rch==='#'&&((rtx*7)|0)%2)?.86:1;
+  x.fillStyle='rgb('+Math.min(255,c[0]*b*sp|0)+','+Math.min(255,c[1]*b*sp|0)+','+Math.min(255,c[2]*b*sp|0)+')';x.fillRect(i,top,1,h+1);x.fillStyle='rgba(0,0,0,.35)';x.fillRect(i,top+h*.9,1,h*.1+1)}
+ sprites(t);gun();mini();
+ x.fillStyle='rgba(255,255,255,.7)';x.fillRect(RW/2-1,RH/2-1,2,2);
+ if(rf>0){x.fillStyle='rgba(160,0,0,'+rf*.6+')';x.fillRect(0,0,RW,RH)}
+ if(blk>0){x.fillStyle='#000';x.fillRect(0,0,RW,RH)}}
+function loop(t){requestAnimationFrame(loop);var dt=Math.min(.05,(t-lt)/1000);lt=t;if(st==='play'&&!open)upd(dt);render(t);if((fc++&7)===0){document.body.style.setProperty('--a',(angst/100).toFixed(2));if(dg)dg.gain.value=.04+angst/1000}}
+setInterval(function(){if(st==='menu')return;var s='';for(var i=0;i<3;i++)s+='<span style="color:'+(i<hp?'#e22':'#444')+'">&#9829;</span>';$('#hl').innerHTML=s+' &nbsp; kogels: '+ammo+' &nbsp; '+fmt(mt)+' &nbsp; '+['k1','k2','k3'].map(function(k,i){return'<span style="color:'+(keys[k]?['#e33','#47f','#fc3'][i]:'#444')+'">&#9679;</span>'}).join(' ')+'<br>'+OB[nk()]},250);
 var gc=$('#gr'),gx=gc.getContext('2d'),gn=gx.createImageData(160,90);
 setInterval(function(){var d=gn.data;for(var i=0;i<d.length;i+=4){d[i]=d[i+1]=d[i+2]=Math.random()*255;d[i+3]=255}gx.putImageData(gn,0,0)},70);
 
 /* ===== BESTURING ===== */
-document.addEventListener('keydown',function(e){var k=e.key.toLowerCase();ks[k]=1;if(k==='escape')sluit();if(k==='e'||k===' '){e.preventDefault();act()}else if(k.indexOf('arrow')===0)e.preventDefault()});
-document.addEventListener('keyup',function(e){ks[e.key.toLowerCase()]=0});
 var g0=$('#g');
-g0.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse')return;tj={x:e.clientX,y:e.clientY,dx:0,dy:0};try{g0.setPointerCapture(e.pointerId)}catch(z){}});
-g0.addEventListener('pointermove',function(e){if(!tj)return;var a=e.clientX-tj.x,b=e.clientY-tj.y,d=Math.hypot(a,b);tj.dx=d>14?a/d:0;tj.dy=d>14?b/d:0});
-g0.addEventListener('pointerup',function(){tj=null});g0.addEventListener('pointercancel',function(){tj=null});
-$('#eb').addEventListener('click',act);
-function begin(c){cm=!!c||matchMedia('(prefers-reduced-motion:reduce)').matches;document.body.classList.toggle('cm',cm);naam=$('#nm').value.trim().slice(0,20);$('#poort').classList.remove('on');$('#ru').textContent=cm?'Rustig: aan':'Rustig: uit';au();again();setTimeout(function(){if(st==='play')say('Zoek de sleutels. Verstop je in een kast als ze komt.',4000)},4300)}
+document.addEventListener('keydown',function(e){var k=e.key.toLowerCase();ks[k]=1;if(k==='escape')sluit();if(k===' '||k==='f'){e.preventDefault();fire()}else if(k.indexOf('arrow')===0)e.preventDefault()});
+document.addEventListener('keyup',function(e){ks[e.key.toLowerCase()]=0});
+document.addEventListener('mousemove',function(e){if(document.pointerLockElement===g0&&st==='play'&&!open)pl.a+=e.movementX*.0025});
+document.addEventListener('mousedown',function(e){if(e.button===0&&document.pointerLockElement===g0)fire()});
+g0.addEventListener('click',function(){if(st==='play'&&!open&&g0.requestPointerLock&&!tm&&!tl)g0.requestPointerLock()});
+g0.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse')return;var o={x:e.clientX,y:e.clientY,lx:e.clientX,dx:0,dy:0};tp[e.pointerId]=o;if(e.clientX<innerWidth/2)tm=o;else tl=o;try{g0.setPointerCapture(e.pointerId)}catch(z){}});
+g0.addEventListener('pointermove',function(e){var o=tp[e.pointerId];if(!o)return;if(o===tm){var a=e.clientX-o.x,b=e.clientY-o.y,d=Math.hypot(a,b);o.dx=d>14?a/d:0;o.dy=d>14?b/d:0}else if(st==='play'&&!open){pl.a+=(e.clientX-o.lx)*.007;o.lx=e.clientX}});
+function up(e){var o=tp[e.pointerId];if(o===tm)tm=null;if(o===tl)tl=null;delete tp[e.pointerId]}
+g0.addEventListener('pointerup',up);g0.addEventListener('pointercancel',up);
+$('#eb').addEventListener('pointerdown',function(e){e.preventDefault();fire()});
+function begin(c){cm=!!c||matchMedia('(prefers-reduced-motion:reduce)').matches;document.body.classList.toggle('cm',cm);naam=$('#nm').value.trim().slice(0,20);$('#poort').classList.remove('on');$('#ru').textContent=cm?'Rustig: aan':'Rustig: uit';au();again();setTimeout(function(){if(st==='play')say('Zoek de sleutels. Klik op het beeld om te richten, schiet met klik of spatie.',4500)},4300)}
 $('#go').addEventListener('click',function(){begin(false)});$('#ca').addEventListener('click',function(){begin(true)});
 $('#ru').addEventListener('click',function(){cm=!cm;document.body.classList.toggle('cm',cm);this.textContent=cm?'Rustig: aan':'Rustig: uit';if(M)M.gain.value=cm?.4:1});
 reset();requestAnimationFrame(loop);
