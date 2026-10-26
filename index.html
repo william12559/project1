@@ -5,10 +5,9 @@
 <title>Minecraft Lite</title>
 
 <style>
-html,body{
+body{
     margin:0;
     overflow:hidden;
-    background:#87ceeb;
 }
 
 #hud{
@@ -19,6 +18,15 @@ html,body{
     font-family:Arial;
     background:rgba(0,0,0,.5);
     padding:10px;
+}
+
+#crosshair{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    color:white;
+    font-size:30px;
 }
 </style>
 
@@ -34,135 +42,124 @@ html,body{
 <body>
 
 <div id="hud">
-Minecraft Lite<br>
 WASD = bewegen<br>
-Spatie = springen
+SPATIE = springen<br>
+LINKS = slopen<br>
+RECHTS = plaatsen
 </div>
 
+<div id="crosshair">+</div>
+
 <script type="module">
+
 import * as THREE from "three";
 
 const scene = new THREE.Scene();
 
-scene.fog = new THREE.Fog(
-    0x87ceeb,
-    20,
-    120
-);
-
 const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth/window.innerHeight,
-    0.1,
-    1000
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
 );
 
 const renderer = new THREE.WebGLRenderer({
-    antialias:true
+antialias:true
 });
 
 renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
+window.innerWidth,
+window.innerHeight
 );
 
 document.body.appendChild(
-    renderer.domElement
+renderer.domElement
 );
 
-/* --------------------
-   LIGHTS
----------------------*/
-
-const sun = new THREE.DirectionalLight(
-    0xffffff,
-    2
+const sun =
+new THREE.DirectionalLight(
+0xffffff,
+2
 );
 
 sun.position.set(
-    50,
-    100,
-    50
+50,
+100,
+50
 );
 
 scene.add(sun);
 
 scene.add(
-    new THREE.AmbientLight(
-        0xffffff,
-        0.5
-    )
+new THREE.AmbientLight(
+0xffffff,
+0.6
+)
 );
-
-/* --------------------
-   WORLD GENERATION
----------------------*/
 
 const blocks = [];
 
 function createBlock(
-    x,
-    y,
-    z,
-    color
+x,
+y,
+z,
+color
 ){
 
-    const block =
-        new THREE.Mesh(
-            new THREE.BoxGeometry(1,1,1),
-            new THREE.MeshLambertMaterial({
-                color
-            })
-        );
+const cube =
+new THREE.Mesh(
 
-    block.position.set(
-        x,
-        y,
-        z
-    );
+new THREE.BoxGeometry(),
 
-    scene.add(block);
+new THREE.MeshLambertMaterial({
+color
+})
 
-    blocks.push(block);
+);
 
-    return block;
+cube.position.set(
+x,
+y,
+z
+);
+
+scene.add(cube);
+
+blocks.push(cube);
+
+return cube;
+
 }
 
-/* --------------------
-   TERRAIN
----------------------*/
-
 for(
-let x=-25;
-x<25;
+let x=-20;
+x<20;
 x++
 ){
 
 for(
-let z=-25;
-z<25;
+let z=-20;
+z<20;
 z++
 ){
 
-const h =
+let height =
 Math.floor(
 Math.random()*3
-);
+)+1;
 
 for(
 let y=0;
-y<=h;
+y<height;
 y++
 ){
 
 let color =
+y===height-1
+?
+0x44aa44
+:
 0x8B4513;
-
-if(
-y===h
-){
-color=0x55aa55;
-}
 
 createBlock(
 x,
@@ -177,18 +174,11 @@ color
 
 }
 
-/* --------------------
-   PLAYER
----------------------*/
-
 camera.position.set(
 0,
-6,
+5,
 5
 );
-
-let velocityY = 0;
-let grounded = false;
 
 const keys = {};
 
@@ -196,7 +186,8 @@ document.addEventListener(
 "keydown",
 e=>{
 keys[e.key.toLowerCase()]
-= true;
+=
+true;
 }
 );
 
@@ -204,16 +195,10 @@ document.addEventListener(
 "keyup",
 e=>{
 keys[e.key.toLowerCase()]
-= false;
+=
+false;
 }
 );
-
-/* --------------------
-   MOUSE LOOK
----------------------*/
-
-let pitch = 0;
-let yaw = 0;
 
 document.body.addEventListener(
 "click",
@@ -221,6 +206,9 @@ document.body.addEventListener(
 document.body.requestPointerLock();
 }
 );
+
+let yaw = 0;
+let pitch = 0;
 
 document.addEventListener(
 "mousemove",
@@ -231,10 +219,14 @@ document.pointerLockElement
 ){
 
 yaw -=
-e.movementX * 0.002;
+e.movementX
+*
+0.002;
 
 pitch -=
-e.movementY * 0.002;
+e.movementY
+*
+0.002;
 
 pitch =
 Math.max(
@@ -250,51 +242,47 @@ pitch
 }
 );
 
-/* --------------------
-   BLOCK PLACE
----------------------*/
+let velocityY = 0;
 
 window.addEventListener(
 "contextmenu",
 e=>{
+
 e.preventDefault();
 
-const block =
-new THREE.Mesh(
-new THREE.BoxGeometry(),
-new THREE.MeshLambertMaterial({
-color:0x55aa55
-})
-);
-
-block.position.set(
+let x =
 Math.round(
 camera.position.x
-),
-Math.round(
-camera.position.y-2
-),
-Math.round(
-camera.position.z
-)
 );
 
-scene.add(block);
+let y =
+Math.round(
+camera.position.y
+-2
+);
 
-blocks.push(block);
+let z =
+Math.round(
+camera.position.z
+);
+
+createBlock(
+x,
+y,
+z,
+0x44aa44
+);
 
 }
 );
-
-/* --------------------
-   BLOCK BREAK
----------------------*/
 
 window.addEventListener(
 "mousedown",
 e=>{
 
-if(e.button!==0)
+if(
+e.button !== 0
+)
 return;
 
 const raycaster =
@@ -305,21 +293,24 @@ new THREE.Vector2(0,0),
 camera
 );
 
-const hit =
+const hits =
 raycaster.intersectObjects(
 blocks
 );
 
-if(hit.length){
+if(
+hits.length
+){
+
+const hit =
+hits[0].object;
 
 scene.remove(
-hit[0].object
+hit
 );
 
 blocks.splice(
-blocks.indexOf(
-hit[0].object
-),
+blocks.indexOf(hit),
 1
 );
 
@@ -328,25 +319,32 @@ hit[0].object
 }
 );
 
-/* --------------------
-   DAY NIGHT
----------------------*/
+const zombie =
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+1,
+2,
+1
+),
+
+new THREE.MeshLambertMaterial({
+color:0x00aa00
+})
+
+);
+
+zombie.position.set(
+10,
+3,
+10
+);
+
+scene.add(
+zombie
+);
 
 let time = 0;
-
-/* --------------------
-   INVENTORY
----------------------*/
-
-const inventory = {
-dirt:0,
-grass:0,
-stone:0
-};
-
-/* --------------------
-   GAME LOOP
----------------------*/
 
 function animate(){
 
@@ -354,13 +352,19 @@ requestAnimationFrame(
 animate
 );
 
-const speed = 0.08;
-
-camera.rotation.order =
+camera.rotation.order
+=
 "YXZ";
 
-camera.rotation.y = yaw;
-camera.rotation.x = pitch;
+camera.rotation.y
+=
+yaw;
+
+camera.rotation.x
+=
+pitch;
+
+const speed = 0.08;
 
 if(keys["w"]){
 
@@ -410,37 +414,65 @@ Math.sin(yaw)
 
 }
 
-/* gravity */
-
 velocityY -= 0.01;
 
 camera.position.y +=
 velocityY;
 
-if(camera.position.y < 6){
+if(
+camera.position.y < 5
+){
 
-camera.position.y = 6;
-
-grounded = true;
+camera.position.y = 5;
 
 velocityY = 0;
 
-}else{
-grounded = false;
 }
 
 if(
 keys[" "] &&
-grounded
+camera.position.y <= 5.01
 ){
 
 velocityY = 0.25;
 
 }
 
-/* day and night */
+let dx =
+camera.position.x -
+zombie.position.x;
 
-time += 0.001;
+let dz =
+camera.position.z -
+zombie.position.z;
+
+let distance =
+Math.sqrt(
+dx*dx +
+dz*dz
+);
+
+if(distance < 20){
+
+zombie.position.x +=
+dx * 0.005;
+
+zombie.position.z +=
+dz * 0.005;
+
+}
+
+if(distance < 1.5){
+
+alert(
+"Zombie heeft je gepakt!"
+);
+
+location.reload();
+
+}
+
+time += 0.002;
 
 sun.position.x =
 Math.cos(time)
@@ -458,10 +490,6 @@ camera
 }
 
 animate();
-
-/* --------------------
-   RESIZE
----------------------*/
 
 window.addEventListener(
 "resize",
